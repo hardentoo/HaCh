@@ -2,3 +2,4 @@
 */.stack-work/
 temp*.txt
 *.db
+*.db*
