@@ -1,0 +1,96 @@
+<html>
+<head>
+  <script>
+  var getJSON = function(url, successHandler, errorHandler) {
+    var xhr = typeof XMLHttpRequest != 'undefined'
+    	? new XMLHttpRequest()
+    	: new ActiveXObject('Microsoft.XMLHTTP');
+    xhr.open('get', url, true);
+    xhr.onreadystatechange = function() {
+    	var status;
+    	var data;
+    	// https://xhr.spec.whatwg.org/#dom-xmlhttprequest-readystate
+    	if (xhr.readyState == 4) { // `DONE`
+    		status = xhr.status;
+    		if (status == 200) {
+    			data = JSON.parse(xhr.responseText);
+    			successHandler && successHandler(data);
+    		} else {
+    			errorHandler && errorHandler(status);
+    		}
+    	}
+    };
+    xhr.send();
+  };
+
+  function xhrSend(url, handler, method){
+    var xhr = typeof XMLHttpRequest != 'undefined'
+    	? new XMLHttpRequest()
+    	: new ActiveXObject('Microsoft.XMLHTTP');
+    xhr.open(method, url, true);
+    xhr.onreadystatechange = function() {
+    	var status;
+    	var data;
+    	if (xhr.readyState == 4) {
+    		status = xhr.status;
+    		if (status == 200) {
+    			handler(xhr.responseText);
+    		} else {
+    			console.error("error");
+    		}
+    	}
+    };
+    xhr.send();
+  }
+
+  function post(url, handler){
+    xhrSend(url, handler, "post");
+  }
+
+  function get(url, handler){
+    xhrSend(url, handler, "get");
+  }
+
+
+  function reloadMessages(){
+    getJSON("http://localhost:8080/msg/all", function(data){
+      root = document.getElementById("msgRoot");
+      root.innerHTML = ""
+      for(var i = 0; i < data.length; i++){
+        var m = data[i];
+        root.innerHTML += "<h4>" + m.heading + " (" + m.likes + ") "
+                        + "<button onclick=\"like(" + m.id + ")\">LIKE</button></h4>"
+                        + "<p>" + m.text + "</p></hr>";
+      }
+    })
+  }
+
+
+  function like(id){
+      post("http://localhost:8080/msg/like/" + id, function(r){
+        reloadMessages();
+      })
+  }
+
+  function send(){
+    var xmlhttp = new XMLHttpRequest();   // new HttpRequest instance
+    xmlhttp.open("POST", "http://localhost:8080/msg/new/");
+    xmlhttp.setRequestHeader("Content-Type", "application/json;charset=UTF-8");
+    xmlhttp.send(JSON.stringify({
+      heading: document.getElementById("head").value,
+      text: document.getElementById("text").value
+    }));
+    xmlhttp.onreadystatechange = reloadMessages;
+
+  }
+
+  reloadMessages();
+  </script>
+</head>
+<body>
+  <div id="msgRoot">Loading..</div>
+  <input type="text" id="head" /><br />
+  <input type="text" id="text" /><br />
+  <button onclick="send()">Send</button>
+</body>
+</html>

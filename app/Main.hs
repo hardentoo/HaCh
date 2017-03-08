@@ -1,7 +1,8 @@
 module Main where
 
-import qualified UserApi as U
-import qualified MessageApi as M
+import App (runApp)
 
-main :: IO ()
-main = M.startApp
+main = runApp
+
+
+-- curl -H "Content-Type: application/json" -X POST -d '{"heading":"3","text":"333"}' http://localhost:8080/msg/new

@@ -1,15 +1,11 @@
 {-# LANGUAGE DataKinds       #-}
 {-# LANGUAGE TemplateHaskell #-}
 {-# LANGUAGE TypeOperators   #-}
-module UserApi
-    ( startApp
-    , app
-    ) where
+module UserApi (server, API) where
 
 import Data.Aeson
 import Data.Aeson.TH
 import Network.Wai
-import Network.Wai.Handler.Warp
 import Servant
 
 import Data.List
@@ -22,14 +18,12 @@ data User = User
 
 $(deriveJSON defaultOptions ''User)
 
-type API = "users"      :> Get '[JSON] [User]
+type API = Get '[JSON] [User]
       :<|> "user"       :> Capture "id" Int         :> Get '[JSON] (Maybe User)
-      :<|> "haveUser"   :> QueryParam "name" String :> Get '[PlainText] String
+      :<|> "has"        :> QueryParam "name" String :> Get '[PlainText] String
       :<|> "logicians"  :> Get '[JSON] [User]
       :<|> "physicists" :> Get '[JSON] [User]
 
-startApp :: IO ()
-startApp = run 8080 app
 
 app :: Application
 app = serve api server

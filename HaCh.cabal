@@ -15,8 +15,11 @@ cabal-version:       >=1.10
 
 library
   hs-source-dirs:      src
-  exposed-modules:     UserApi
+  exposed-modules:     Models
                      , MessageApi
+                     , UserApi
+                     , StaticApi
+                     , App
   build-depends:       base >= 4.7 && < 5
                      , aeson
                      , servant-server

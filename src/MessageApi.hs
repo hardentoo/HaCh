@@ -11,10 +11,7 @@
 {-# LANGUAGE TypeFamilies               #-}
 {-# LANGUAGE RecordWildCards            #-}
 
-module MessageApi
-    ( startApp
-    , app
-    ) where
+module MessageApi(server, API) where
 
 import Data.Aeson
 import Data.Aeson.TH
@@ -22,16 +19,18 @@ import Network.Wai
 import Network.Wai.Handler.Warp
 import Servant
 
-import           Control.Monad.IO.Class  (liftIO)
-import           Database.Persist
-import           Database.Persist.Sqlite
-import           Database.Persist.TH
-import           Data.String.Conversions
-import           Control.Monad.Logger (runStderrLoggingT)
-
+import Control.Monad.IO.Class  (liftIO)
+import Database.Persist
+import Database.Persist.Sqlite
+import Database.Persist.TH
+import Data.String.Conversions
+import Control.Monad.Logger (runStderrLoggingT)
 
 import Data.List (find)
 
+import Models
+
+{-
 share [mkPersist sqlSettings, mkMigrate "migrateAll"] [persistLowerCase|
 Message
     heading String Maybe
@@ -52,18 +51,20 @@ instance ToJSON Message where
            , "text"    .= messageText m
            , "likes"   .= messageLikes m
            ]
+-}
 
-type API = "msg" :> "new"
+
+type API = "new"
           :> ReqBody '[JSON] Message
           :> Post '[JSON] (Key Message)
       :<|> "msg" :> "get"
           :> Capture "id" (Key Message)
-          :> Get '[JSON] (Maybe Message)
-      :<|> "msg" :> "all"
-          :> Get '[JSON] [Message]
-      :<|> "msg" :> "like"
+          :> Get '[JSON] (Maybe (Entity Message))
+      :<|> "all"
+          :> Get '[JSON] [(Entity Message)]
+      :<|> "like"
           :> Capture "id" (Key Message)
-          :> Get '[JSON] String
+          :> Post '[JSON] String
 
 server :: ConnectionPool -> Server API
 server pool = newMsg
@@ -73,14 +74,14 @@ server pool = newMsg
 
   where getMsg mid = liftIO $ flip runSqlPersistMPool pool $ do
           msg <- selectFirst [MessageId ==. mid] []
-          return $ entityVal <$> msg
+          return $ msg
 
         newMsg msg = liftIO $ flip runSqlPersistMPool pool $ do
           insert msg
 
         allMsgs = liftIO $ flip runSqlPersistMPool pool $ do
           msgs <- selectList [] []
-          return $ entityVal <$> msgs
+          return $ msgs
 
         likeMsg mid = liftIO $ flip runSqlPersistMPool pool $ do
           msg <- get mid
@@ -91,23 +92,11 @@ server pool = newMsg
               return "Ok"
             Nothing -> return "Not found"
 
-
 api :: Proxy API
 api = Proxy
 
-
-app :: ConnectionPool -> Application
-app pool = serve api (server pool)
-
-
-mkApp :: FilePath -> IO Application
-mkApp sqliteFile = do
-  pool <- runStderrLoggingT $ do
-    createSqlitePool (cs sqliteFile) 5
-
-  runSqlPool (runMigration migrateAll) pool
-  return $ app pool
-
-
-startApp :: IO ()
-startApp = mkApp "sqlite.db" >>= run 3000
+{-
+app = do
+  pool <- getConnectionPool "sqlite.db"
+  return $ serve api (server pool)
+-}
