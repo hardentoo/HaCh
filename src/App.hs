@@ -9,7 +9,6 @@ import Network.Wai.Handler.Warp
 import Database.Persist.Sqlite
 import Data.String.Conversions
 import Control.Monad.Logger (runStderrLoggingT)
-import Database.Persist
 
 import qualified UserApi as U
 import qualified MessageApi as M
