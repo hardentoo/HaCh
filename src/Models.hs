@@ -40,3 +40,11 @@ instance ToJSON (Entity Message) where
       , "text"    .= text
       , "likes"   .= likes
       ]
+
+instance ToJSON Message where
+  toJSON (Message heading text likes) =
+    object [
+        "heading" .= heading
+      , "text"    .= text
+      , "likes"   .= likes
+      ]

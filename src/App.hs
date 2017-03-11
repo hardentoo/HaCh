@@ -14,7 +14,7 @@ import qualified UserApi as U
 import qualified MessageApi as M
 import qualified StaticApi as S
 import qualified ReaderServer as R
-import qualified StateServer as STA
+import qualified StateServer as SS
 
 
 import Models
@@ -23,14 +23,14 @@ type API = "users"  :> U.API
       :<|> "static" :> S.API
       :<|> "msg"    :> M.API
       :<|> "r"      :> R.API
-      :<|> "s"      :> STA.API
+      :<|> "s"      :> SS.API
 
 server :: ConnectionPool -> Server API
 server cp = U.server
        :<|> S.server
        :<|> M.server cp
        :<|> R.server
-       :<|> STA.server
+       :<|> SS.server
 
 app :: FilePath -> IO Application
 app dbPath = do
